@@ -1,7 +1,7 @@
 # Dictionary Word Lookup 
 
-node version : v20.11.0
-react version : 19.0.0
+<p>node version : v20.11.0 </p>
+<p>react version : 19.0.0</p>
 
 ### `git clone https://github.com/mepawan/directory-look-mantine.git`
 ### `npm install`
