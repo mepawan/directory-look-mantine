@@ -6,5 +6,5 @@
 ### `git clone https://github.com/mepawan/directory-look-mantine.git`
 ### `npm install`
 ### `npm start`
-
-<a target="_blak" href="https://directory-lookup-mantine.vercel.app">Demo : https://directory-lookup-mantine.vercel.app/</a>
+<h3>Demo</h3>
+<a target="_blank" href="https://directory-lookup-mantine.vercel.app"> https://directory-lookup-mantine.vercel.app/</a>
