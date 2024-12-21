@@ -7,4 +7,4 @@
 ### `npm install`
 ### `npm start`
 
-<a href="https://directory-lookup-mantine.vercel.app">Demo : https://directory-lookup-mantine.vercel.app/</a>
+<a target="_blak" href="https://directory-lookup-mantine.vercel.app">Demo : https://directory-lookup-mantine.vercel.app/</a>
