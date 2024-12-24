@@ -1,129 +1,84 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import { Container, TextInput, Button, Loader, Card, Group, Text, List, ActionIcon, Center } from '@mantine/core';
+import { IconSearch,IconVolume } from '@tabler/icons-react';
 
-import {
-  MantineProvider,
-  Container,
-  Title,
-  Text,
-  TextInput,
-  Button,
-  Loader,
-  Alert,
-  Card,
-  Group,
-  Stack,
-} from '@mantine/core';
-import Definition from './components/Definition';
-import Phonetics from './components/Phonetics';
-
-const DictionaryApp = () => {
+function App() {
   const [word, setWord] = useState('');
-  const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
+  const [result, setResult] = useState(null);
 
-  const searchWord = async (e) => {
+  const fetchWordDefinition = async (e) => {
     e.preventDefault();
-    if (!word.trim()) return;
-
     setLoading(true);
-    setError(null);
-    setResults(null);
+    setError('');
+    setResult(null);
 
     try {
-      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word.trim()}`);
-      if (!response.ok) {
-        throw new Error('Word not found');
-      }
-      const data = await response.json();
-      setResults(data[0]);
+      const response = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+      setResult(response.data[0]);
     } catch (err) {
-      setError(err.message);
+      setError('Word not found or an error occurred.');
     } finally {
       setLoading(false);
     }
   };
-
   const playAudio = (audioUrl) => {
     if (audioUrl) {
       const audio = new Audio(audioUrl);
-      audio.play().catch((err) => console.error('Error playing audio:', err));
+      audio.play().catch(err => console.error('Error playing audio:', err));
     }
   };
-  
-
   return (
-    <MantineProvider>
-      <Container size="md" py="xl" >
-       <div style={{width: "80%",margin:"auto", maxWidth:"500px"}}>
-          <Title order={1} mb="xl"> <div style={{fontWeight:'bold'}}>Dictionary Word Lookup</div> </Title>
-          <Group align="center" position="center" spacing="xs" mb="xl">
-              <form onSubmit={searchWord} style={{marginTop:"20px"}}>
-                <Group position="apart" mb="md">
-                  <TextInput
-                    placeholder="Enter a word"
-                    value={word}
-                    onChange={(e) => setWord(e.target.value)}
-                    style={{ display:"inline-block", padding:"10px", width:'250px', borderColor:"grey" }}
-                  />
-                  <Button type="submit" size="md" loading={loading} style={{ display:"inline-block",marginLeft:"5px" }}>
-                    {loading ? <Loader size="sm" /> : 'Search'}
-                  </Button>
-                  <Loader size="sm" />
-                </Group>
-              </form>
-          </Group>
-          {error && (
-            <Alert color="red" mb="md">
-              {error}
-            </Alert>
+    <Container size="md" my="xl">
+      <h1>Dictionary Word Lookup</h1>
+      <form onSubmit={fetchWordDefinition}>
+        <TextInput
+          style={{'--hover-color':'red'}}
+          value={word}
+          onChange={(e) => setWord(e.target.value)}
+          placeholder="Enter a word"
+          rightSection={<ActionIcon size={30} variant="light" onClick={fetchWordDefinition}><IconSearch size="xs" /></ActionIcon>}
+        />
+        </form>
+      {loading && <Loader mt="md" />}
+      {error && <Text style={{color:'red'}} mt="md">{error}</Text>}
+      {result && (
+        <Card shadow="sm" padding="lg" radius="md" withBorder mt="md" mb="xs">
+          <Text size="xl" ta="center" fw="bold" style={{borderBottom:'1px solid #eee'}}>{result.word}</Text>
+          {result.phonetics?.length > 0 && (
+            <>
+              <Text weight={500} size="md" mt="md" fw="bold" > Phonetics </Text>
+              {result.phonetics.map((phonetic, index) => (
+                  <Group key={index} mt="sm" style={{borderBottom:'1px solid #eee',paddingBottom:'2px'}}>
+                    {phonetic.text && <Text>{phonetic.text}</Text>}
+                    {phonetic.audio && <Button variant="light" size="compact-xs"><IconVolume onClick={() => playAudio(phonetic.audio)} /></Button>} 
+                  </Group>
+              ))}
+            </>
           )}
+          
+            <Text mt="md" style={{borderBottom:'1px solid #eee',paddingBottom:'2px'}}><Text style={{fontWeight:'bold'}}>Origin: </Text>{result.origin || "Origin not found"}</Text>
+          
+          <Text mt="md"  style={{fontWeight:"bold"}}>Meanings</Text>
+          {result.meanings.map((meaning, index) => (
+            <div key={index} style={{ marginTop: 20 }}>
+              <Text style={{color:"#228be6"}}>{meaning.partOfSpeech}</Text>
+              <List spacing="xs" style={{listStyle:"none", paddingLeft:"10px",}}>
+                {meaning.definitions.map((def, i) => (
+                  <List.Item key={i} style={{listStyle:"none", borderBottom:"1px solid #eee", paddingBlock:"5px"}}>
+                    <Text>{def.definition}</Text>
+                    {def.example && <Text color="dimmed">Example: {def.example}</Text>}
+                  </List.Item>
+                ))}
+              </List>
+            </div>
+          ))}
+        </Card>
+      )}
+    </Container>
+  );
+}
 
-          {results && (
-            <Card shadow="sm" p="lg" radius="md" withBorder>
-              <Stack>
-                <div>
-                  <Title order={2} >{results.word}</Title>
-                  {results.phonetics?.length > 0 && (
-                    <div style={{display:'inline-block'}}>
-                      <Phonetics
-                        text={results.phonetics[0].text}
-                        audioUrl={results.phonetics[0].audio}
-                        playAudio={playAudio}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {results.origin && (
-                  <div>
-                    <Text weight={500} size="md" mt="md" >
-                      Origin
-                    </Text>
-                    <Text>{results.origin}</Text>
-                  </div>
-                )}
-
-                <div>
-                  <Text weight={500} size="md" mt="md" style={{fontWeight:"bold", marginTop:"20px"}}>
-                    Meanings
-                  </Text>
-                  {results.meanings?.map((meaning, index) => (
-                    <Definition
-                      key={index}
-                      partOfSpeech={meaning.partOfSpeech}
-                      definitions={meaning.definitions}
-                    />
-                  ))}
-                </div>
-              </Stack>
-            </Card>
-          )}
-        </div>
-
-      </Container>
-    </MantineProvider>
-  )
-};
-
-export default DictionaryApp;
+export default App;
